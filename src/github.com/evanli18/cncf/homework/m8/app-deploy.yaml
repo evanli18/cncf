@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      # 优雅停止
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: app
+          image: evanchn/httpserver:v1.0
+          resources:
+            limits:
+              cpu: 500m
+              memory: 200Mi
+            requests:
+              cpu: 200m
+              memory: 100Mi
+          envFrom:
+            - configMapRef:
+                name: app-config
+          # 探针检测 & 优雅启动
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 2

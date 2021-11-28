@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logrotate-config
+data:
+  LOGS_DIRECTORIES: /var/lib/docker/containers
+  LOGROTATE_INTERVAL: hourly
+  LOGROTATE_COPIES: "2"
+  LOGROTATE_SIZE: "100M" # 测试使用的大小
+  LOGROTATE_CRONSCHEDULE: "0 */10 * * * *" # go-cron
+
