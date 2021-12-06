@@ -3,10 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/evanli18/httpserver/metric"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Response 是一个标准的 http 返回的最小单元
@@ -47,6 +55,10 @@ func GetClientIP(r *http.Request) string {
 // httpHandleFunc 封装日志中间件
 func httpHandleFunc(w http.ResponseWriter, r *http.Request,
 	handle func(request *http.Request) Response) {
+	beginTime := time.Now()
+	// 随机耗时
+	time.Sleep(time.Second * time.Duration(rand.Int31n(3)))
+
 	// 解析客户端IP
 	clientIp := GetClientIP(r)
 
@@ -57,6 +69,7 @@ func httpHandleFunc(w http.ResponseWriter, r *http.Request,
 	if response.Code == 0 {
 		response.Code = http.StatusOK
 	}
+	duration := time.Since(beginTime).Seconds()
 
 	// set header
 	for s := range response.Header {
@@ -70,7 +83,19 @@ func httpHandleFunc(w http.ResponseWriter, r *http.Request,
 	fmt.Fprint(w, response.Body)
 
 	// after
-	log.Printf("request_out||client_ip=%s||uri=%s||code=%d\n", clientIp, r.RequestURI, response.Code)
+	log.Printf("request_out||client_ip=%s||uri=%s||code=%d||proc_time=%f\n", clientIp, r.RequestURI, response.Code, duration)
+
+	// metric, 请求计数
+	metric.HTTPReqTotal.With(prometheus.Labels{
+		"method": r.Method,
+		"path":   r.RequestURI,
+		"status": strconv.Itoa(response.Code),
+	}).Inc()
+	// 请求处理时长
+	metric.HTTPReqDuration.With(prometheus.Labels{
+		"method": r.Method,
+		"path":   r.RequestURI,
+	}).Observe(duration)
 }
 
 // Server is httpserver
@@ -95,6 +120,8 @@ func (ser Server) Run() error {
 // Server 应用 Mux 路由
 func New() Server {
 	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler()) // 支持 prom
+
 	return Server{
 		mux: mux,
 		s:   &http.Server{Addr: ":8080", Handler: mux},
