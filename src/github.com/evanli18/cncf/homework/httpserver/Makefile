@@ -1,4 +1,4 @@
-export tag=v1.0
+export tag=v1.1
 root:
 	export ROOT=github.com/evanli18/cncf
 	export GO111MODULE="auto"
