@@ -77,6 +77,6 @@ Latency: histogram_quantile(0.9, sum(rate(http_request_duration_seconds_bucket{}
     分为 0.75, 0.5
 
 样图
-![Dashboard](./dashboard.png)
+![image](./dashboard.png)
 
 模板可导入文件在当前目录下的json文件。
