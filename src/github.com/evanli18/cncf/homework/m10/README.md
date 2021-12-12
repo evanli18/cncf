@@ -75,7 +75,8 @@ spec:
 QPS Rate: sum(rate(http_requests_total{}[5m]))
 
 Latency: histogram_quantile(0.9, sum(rate(http_request_duration_seconds_bucket{}[5m])) by (path, le)) * 1000
-    分为 0.75, 0.5
+
+可用的其他分位 0.75, 0.5
 
 样图
 ![image](./dashboard.png)
