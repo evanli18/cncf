@@ -1,0 +1,40 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: app-vs
+spec:
+  hosts:
+  - www.example.com
+  gateways:
+  - app-gw
+  http:
+  - name: "auth"
+    match:
+    - uri:
+        prefix: "/auth"
+    route:
+    - destination:
+        host: auth
+  - name: "bff"
+    route:
+    - destination:
+        host: bff
+
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: app-gw
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - hosts:
+        - www.example.com
+      port:
+        name: https
+        number: 443
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: example-tls

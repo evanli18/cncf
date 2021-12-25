@@ -1,0 +1,28 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: user
+spec:
+  gateways:
+    - user-gw
+  hosts:
+    - '*'
+  http:
+    - route:
+      - destination:
+          host: user
+---
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: user-gw
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - hosts:
+        - '*'
+      port:
+        name: user-gw
+        number: 8081
+        protocol: HTTP
